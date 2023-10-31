@@ -12,6 +12,8 @@ module.exports = {
       },
       chapterName: {
         type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
       },
       chapterDescription: {
         type: Sequelize.TEXT,

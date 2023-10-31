@@ -12,6 +12,8 @@ module.exports = {
       },
       courseName: {
         type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
       },
       courseDescription: {
         type: Sequelize.TEXT,
