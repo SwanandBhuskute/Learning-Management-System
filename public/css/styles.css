@@ -4,8 +4,7 @@
 }
 
 /* Additional styling for the sections */
-.educator-login-ask,
-.student-login-ask {
+.login-ask {
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
