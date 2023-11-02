@@ -12,11 +12,14 @@
     <div class="grid grid-cols-4">
         <div class="col-start-2 col-span-2">
             <%- include ('header.ejs') %>
-            <h2 class="text-2xl font-semibold py-1">My Courses:</h2>
+            <div class="py-2 text-sm font-semibold border-b-2" style="display: flex; justify-content: space-between;">
+                <h2 class="text-2xl font-semibold py-1">My Courses:</h2>
+                <h1 class="text-black-600 text-sm font-semibold"><%= currentUser.firstName %> <%= currentUser.lastName %> </h1>
+            </div>
             <a href="/teacher-dashboard" class="text-blue-600 text-sm font-semibold border-b-2 py-2">Back to Dashboard</a>
             <ul class="space-y-4">
                 <% for (let course of courses) { %>
-                    <% if (course.userId === user.id) { %>
+                    <% if (course.userId === currentUser.id) { %>
                         <li class="m-4">
                             <a href="/view-course/<%= course.id %>">
                                 <div class="bg-white border border-gray-300 p-4 rounded-lg shadow hover:shadow-lg">
@@ -26,7 +29,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                         </svg>
                                     </div>
-                                    <a href="/view-course/<%= course.id %>" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 mx-2">
+                                    <a href="/view-course/<%= course.id %>?currentUserId=<%= encodeURIComponent(currentUser.id) %>" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 mx-2">
                                         View Course
                                     </a>
                                     <a href="/enrol-course/<%= course.id %>" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 mx-2">
