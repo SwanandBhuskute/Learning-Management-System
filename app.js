@@ -32,7 +32,7 @@ app.use(
   }),
 );
 
-const { Users, Courses, Chapters, Pages } = require("./models");
+const { Users, Courses, Chapters, Pages, Enrollments } = require("./models");
 
 // Passport.js setup
 app.use(passport.initialize());
@@ -212,14 +212,14 @@ app.get(
       // Fetch the existing courses from the database
       const existingCourses = await Courses.findAll();
       const existingUsers = await Users.findAll();
-      // console.log(existingCourses);
-      // response.send(existingCourses);
+      const existingEnrollments = await Enrollments.findAll();
 
       // Render the teacher-dashboard page and pass the courses to it
       response.render("teacher-dashboard", {
         title: `${currentUser.firstName} teacher Dashboard`,
         courses: existingCourses,
         users: existingUsers,
+        enrols: existingEnrollments,
         currentUser,
         csrfToken: request.csrfToken(),
       });
@@ -523,17 +523,83 @@ app.get(
     const currentUser = request.user;
 
     try {
-      // Fetch the existing courses from the database
+      // Fetch the existing courses, users, enrollments from the database
       const existingCourses = await Courses.findAll();
       const existingUsers = await Users.findAll();
-      // console.log(existingCourses);
-      // response.send(existingCourses);
+      const existingEnrollments = await Enrollments.findAll();
 
       // Render the teacher-dashboard page and pass the courses to it
       response.render("student-dashboard", {
         title: "Student Dashboard",
         courses: existingCourses,
         users: existingUsers,
+        enrols: existingEnrollments,
+        currentUser,
+        csrfToken: request.csrfToken(),
+      });
+    } catch (error) {
+      console.error(error);
+      return response.status(422).json(error);
+    }
+  },
+);
+
+app.post(
+  "/enrol-course/:courseId",
+  connnectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    // Get the courseId from the URL parameter
+    const courseId = request.params.courseId;
+
+    // Get the current user (student)
+    const currentUserId = request.query.currentUserId;
+
+    const existingEnrollment = await Enrollments.findOne({
+      where: { userId: currentUserId, courseId },
+    });
+
+    if (existingEnrollment) {
+      // Handle the case where the student is already enrolled
+      return response
+        .status(400)
+        .json({ message: "You are already enrolled in this course." });
+    }
+
+    // Record the enrollment in the Enrollments model
+    await Enrollments.create({
+      userId: currentUserId,
+      courseId,
+      noOfChapCompleted: 0,
+      totChapInTheCourse: 0,
+    });
+
+    response.redirect("/student-dashboard");
+  },
+);
+
+//route to display enrolled courses by the student
+app.get(
+  "/MyCourses",
+  connnectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    const currentUser = request.user;
+
+    try {
+      // Fetch the courses that the current user is enrolled in
+      const enrolledCourses = await Enrollments.findAll({
+        where: { userId: currentUser.id },
+      });
+
+      // Fetch information about these courses from the Courses model
+      const courseIds = enrolledCourses.map(
+        (enrollment) => enrollment.courseId,
+      );
+      const courses = await Courses.findAll({ where: { id: courseIds } });
+
+      // Render the stuMyCourses page and pass the enrolled courses to it
+      response.render("stuMyCourses", {
+        title: `${currentUser.firstName}'s Enrolled Courses`,
+        courses: courses,
         currentUser,
         csrfToken: request.csrfToken(),
       });
