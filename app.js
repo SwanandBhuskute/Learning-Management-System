@@ -2,7 +2,9 @@
 const express = require("express");
 const app = express();
 const path = require("path");
+var csrf = require("tiny-csrf");
 const bodyParser = require("body-parser");
+var cookieParser = require("cookie-parser");
 const session = require("express-session");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
@@ -16,6 +18,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cookieParser("shh! some secret string"));
+app.use(csrf("this_should_be_32_character_long", ["POST", "PUT", "DELETE"]));
 app.use(flash());
 
 // Configure session middleware
@@ -98,18 +102,21 @@ app.set("view engine", "ejs");
 app.get("/", (request, response) => {
   response.render("index", {
     title: "LMS app",
+    csrfToken: request.csrfToken(),
   });
 });
 
-app.get("/signup", (_request, response) => {
+app.get("/signup", (request, response) => {
   response.render("signup", {
     title: "Signup",
+    csrfToken: request.csrfToken(),
   });
 });
 
-app.get("/login", (_request, response) => {
+app.get("/login", (request, response) => {
   response.render("login", {
     title: "Login",
+    csrfToken: request.csrfToken(),
   });
 });
 
@@ -204,14 +211,17 @@ app.get(
     try {
       // Fetch the existing courses from the database
       const existingCourses = await Courses.findAll();
+      const existingUsers = await Users.findAll();
       // console.log(existingCourses);
       // response.send(existingCourses);
 
       // Render the teacher-dashboard page and pass the courses to it
       response.render("teacher-dashboard", {
-        title: "Teacher Dashboard",
+        title: `${currentUser.firstName} teacher Dashboard`,
         courses: existingCourses,
+        users: existingUsers,
         currentUser,
+        csrfToken: request.csrfToken(),
       });
     } catch (error) {
       console.error(error);
@@ -228,6 +238,7 @@ app.get(
     response.render("createCourse", {
       title: "Create New Course",
       currentUser,
+      csrfToken: request.csrfToken(),
     });
   },
 );
@@ -289,9 +300,10 @@ app.get(
 
       // Render the my-courses page and pass the user's courses to it
       response.render("my-courses", {
-        title: "My Courses",
+        title: `${currentUser.firstName}'s Courses`,
         courses: userCourses,
         currentUser,
+        csrfToken: request.csrfToken(),
       });
     } catch (error) {
       console.error(error);
@@ -323,9 +335,10 @@ app.get(
 
       // Render the my-courses page and pass the user's courses to it
       response.render("viewReport", {
-        title: "My Courses Report",
+        title: `${currentUser.firstName}'s Courses Report`,
         courses: userCourses,
         currentUser,
+        csrfToken: request.csrfToken(),
       });
     } catch (error) {
       console.error(error);
@@ -364,6 +377,7 @@ app.get("/view-course/:id", async (request, response) => {
       chapters,
       userofCourse,
       currentUser,
+      csrfToken: request.csrfToken(),
     });
   } catch (error) {
     console.error(error);
@@ -374,21 +388,22 @@ app.get("/view-course/:id", async (request, response) => {
 app.get(
   "/view-course/:id/createchapter",
   connnectEnsureLogin.ensureLoggedIn(),
-  async (req, res) => {
-    const courseId = req.params.id;
+  async (request, response) => {
+    const courseId = request.params.id;
     const course = await Courses.findByPk(courseId);
     const userOfCourseId = course.userId;
     const userOfCourse = await Users.findByPk(userOfCourseId);
 
-    const currentUserId = req.query.currentUserId;
+    const currentUserId = request.query.currentUserId;
     const currentUser = await Users.findByPk(decodeURIComponent(currentUserId));
 
-    res.render("createChapter", {
+    response.render("createChapter", {
       title: "Create New Chapter",
       courseId,
       course,
       userOfCourse,
       currentUser,
+      csrfToken: request.csrfToken(),
     });
   },
 );
@@ -435,20 +450,20 @@ app.post(
 app.get(
   "/view-chapter/:id/createpage",
   connnectEnsureLogin.ensureLoggedIn(),
-  async (req, res) => {
-    const chapterId = req.params.id;
+  async (request, response) => {
+    const chapterId = request.params.id;
     const chapter = await Chapters.findByPk(chapterId);
     const courseId = chapter.courseId;
     const course = await Courses.findByPk(courseId);
     const userOfCourseId = course.userId;
     const userOfCourse = await Users.findByPk(userOfCourseId);
 
-    const currentUserId = req.query.currentUserId;
+    const currentUserId = request.query.currentUserId;
     const currentUser = await Users.findByPk(decodeURIComponent(currentUserId));
 
     const pages = await Pages.findAll({ where: { chapterId } });
 
-    res.render("createPage", {
+    response.render("createPage", {
       title: "Create New Page",
       chapterId,
       chapter,
@@ -456,6 +471,7 @@ app.get(
       course,
       userOfCourse,
       currentUser,
+      csrfToken: request.csrfToken(),
     });
   },
 );
@@ -509,6 +525,7 @@ app.get(
     try {
       // Fetch the existing courses from the database
       const existingCourses = await Courses.findAll();
+      const existingUsers = await Users.findAll();
       // console.log(existingCourses);
       // response.send(existingCourses);
 
@@ -516,7 +533,9 @@ app.get(
       response.render("student-dashboard", {
         title: "Student Dashboard",
         courses: existingCourses,
+        users: existingUsers,
         currentUser,
+        csrfToken: request.csrfToken(),
       });
     } catch (error) {
       console.error(error);
@@ -534,5 +553,22 @@ app.get("/signout", (request, response, next) => {
     response.redirect("/");
   });
 });
+
+//delete a course
+app.delete(
+  "/courses/:id",
+  connnectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    // const loggedInUser = request.user.id;
+    console.log("We have to delete a course with ID: ", request.params.id);
+
+    try {
+      const status = await Courses.remove(request.params.id);
+      return response.json(status ? true : false);
+    } catch (err) {
+      return response.status(422).json(err);
+    }
+  },
+);
 
 module.exports = app;
