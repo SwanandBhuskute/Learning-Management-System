@@ -718,7 +718,7 @@ app.post("/mark-as-complete", async (request, response) => {
       });
     }
 
-    if (pageId == 1) {
+    if (pageId === 1) {
       response.redirect(
         `/view-chapter/${chapterId}/viewpage?currentUserId=${userId}`,
       );
@@ -751,6 +751,45 @@ app.delete(
     }
   },
 );
+
+//change password routes
+app.get("/changePassword", (request, reponse) => {
+  const currentUser = request.user;
+
+  reponse.render("changePassword", {
+    title: "Change Password",
+    currentUser,
+    csrfToken: request.csrfToken(),
+  });
+});
+
+app.post("/changePassword", async (request, response) => {
+  const userEmail = request.body.email;
+  const newPassword = request.body.password;
+
+  try {
+    // Find the user by email
+    const user = await Users.findOne({ where: { email: userEmail } });
+
+    if (!user) {
+      request.flash("error", "User with that email does not exist.");
+      return response.redirect("/resetpassword");
+    }
+
+    // Hash the new password
+    const hashedPwd = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update the user's password in the database
+    await user.update({ password: hashedPwd });
+
+    // Redirect to a success page or login page
+    return response.redirect("/login");
+  } catch (error) {
+    console.log(error);
+    request.flash("error", "Error updating the password.");
+    return response.redirect("/changePassword");
+  }
+});
 
 app.get("/signout", (request, response, next) => {
   //signout
