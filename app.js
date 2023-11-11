@@ -769,21 +769,23 @@ app.post("/mark-as-complete", async (request, response) => {
   }
 });
 
-//delete a course - not working for now
+// DELETE a course
 app.delete(
   "/courses/:id",
   connnectEnsureLogin.ensureLoggedIn(),
   async (request, response) => {
-    // const loggedInUser = request.user.id;
-    console.log("We have to delete a course with ID: ", request.params.id);
+    const courseId = request.params.id;
+    console.log("We have to delete a course with ID: ", courseId);
 
     try {
-      const status = await Courses.remove(request.params.id);
+      // Assuming Courses.remove is a method that deletes a course
+      const status = await Courses.remove(courseId, request.user.id);
       return response.json(status ? true : false);
     } catch (err) {
+      console.error(err);
       return response.status(422).json(err);
     }
-  },
+  }
 );
 
 //change password routes
