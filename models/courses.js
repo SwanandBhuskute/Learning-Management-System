@@ -18,6 +18,14 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "courseId",
       });
     }
+
+    static async remove(id) {
+      return this.destroy({
+        where: {
+          id,
+        },
+      });
+    }
   }
   Courses.init(
     {
@@ -27,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Courses",
-    },
+    }
   );
   return Courses;
 };
