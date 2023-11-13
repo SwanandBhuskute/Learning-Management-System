@@ -36,7 +36,7 @@ describe("LMS test suite", () => {
   test("should sign up a new user", async () => {
     const res = await agent.get("/signup");
     const csrfToken = extractCsrfToken(res);
-  
+
     const newUser = {
       firstName: "Test",
       lastName: "User",
@@ -45,59 +45,72 @@ describe("LMS test suite", () => {
       role: "student",
       _csrf: csrfToken,
     };
-  
+
     const signupRes = await agent.post("/users").send(newUser);
     expect(signupRes.statusCode).toBe(302);
   });
-  
+
   test("should sign in a user", async () => {
     await login(agent, "john.doe@example.com", "password123");
   });
-  
+
   test("should view courses created by a teacher", async () => {
     await login(agent, "teacher@example.com", "password123");
-  
+
     const teaMyCoursesRes = await agent.get("/teaMyCourses");
     expect(teaMyCoursesRes.statusCode).toBe(200);
   });
 
   test("should view enrolled courses for a student", async () => {
     await login(agent, "student@example.com", "password123");
-  
+
     const stuMyCoursesRes = await agent.get("/stuMyCourses");
     expect(stuMyCoursesRes.statusCode).toBe(200);
   });
-  
+
   test("should view teacher's dashboard", async () => {
     await login(agent, "teacher@example.com", "password123");
-  
+
     const teacherDashboardRes = await agent.get("/teacher-dashboard");
     expect(teacherDashboardRes.statusCode).toBe(200);
   });
 
   test("should view student's dashboard", async () => {
     await login(agent, "student@example.com", "password123");
-  
+
     const studentDashboardRes = await agent.get("/student-dashboard");
     expect(studentDashboardRes.statusCode).toBe(200);
   });
-  
+
+  test("should view teacher's report", async () => {
+    await login(agent, "teacher@example.com", "password123");
+
+    const teacherReportRes = await agent.get("/view-report");
+    expect(teacherReportRes.statusCode).toBe(200);
+  });
+
   test("should create a new course", async () => {
     await login(agent, "teacher@example.com", "password123");
-  
+
     const csrfToken = extractCsrfToken(await agent.get("/createcourse"));
     const newCourse = {
       courseName: "New Course",
       courseDescription: "Description for the new course.",
       _csrf: csrfToken,
     };
-  
+
     const createCourseRes = await agent.post("/createcourse").send(newCourse);
     expect(createCourseRes.statusCode).toBe(302);
   });
-    
+
   test("should sign out the user", async () => {
-    let res = await agent.get("/signout");
+    res = await agent.get("/signout");
+    expect(res.statusCode).toBe(302);
+
+    res = await agent.get("/teacher-dashboard");
+    expect(res.statusCode).toBe(302);
+
+    res = await agent.get("/student-dashboard");
     expect(res.statusCode).toBe(302);
   });
 });

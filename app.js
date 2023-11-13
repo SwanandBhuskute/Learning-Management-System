@@ -400,7 +400,7 @@ app.get(
         const enrollmentCount = await Enrollments.count({
           where: { courseId: course.id },
           distinct: true,
-          col: 'userId',
+          col: "userId",
         });
 
         coursesWithEnrollment.push({
@@ -412,7 +412,7 @@ app.get(
 
       // Sort courses based on enrollment count in descending order for knowing popularity
       const sortedCourses = coursesWithEnrollment.sort(
-        (a, b) => b.enrollmentCount - a.enrollmentCount
+        (a, b) => b.enrollmentCount - a.enrollmentCount,
       );
 
       const allCourses = await Courses.findAll();
@@ -420,27 +420,27 @@ app.get(
       // Loop through each course to fetch enrollment count
       const allCoursesWithEnrollment = [];
       for (const course of allCourses) {
-          const enrollmentCount = await Enrollments.count({
-              where: { courseId: course.id },
-              distinct: true,
-              col: 'userId',
-          });
+        const enrollmentCount = await Enrollments.count({
+          where: { courseId: course.id },
+          distinct: true,
+          col: "userId",
+        });
 
-          const userId = course.userId;
-          const userOfCourse = await Users.findByPk(userId);
+        const userId = course.userId;
+        const userOfCourse = await Users.findByPk(userId);
 
-          allCoursesWithEnrollment.push({
-              id: course.id,
-              userFName: userOfCourse.firstName,
-              userLName: userOfCourse.lastName,
-              courseName: course.courseName,
-              enrollmentCount: enrollmentCount,
-          });
+        allCoursesWithEnrollment.push({
+          id: course.id,
+          userFName: userOfCourse.firstName,
+          userLName: userOfCourse.lastName,
+          courseName: course.courseName,
+          enrollmentCount: enrollmentCount,
+        });
       }
 
       // Sort all courses based on enrollment count in descending order for popularity
       const sortedAllCourses = allCoursesWithEnrollment.sort(
-          (a, b) => b.enrollmentCount - a.enrollmentCount
+        (a, b) => b.enrollmentCount - a.enrollmentCount,
       );
 
       // Render the viewReport page and pass the user's courses with enrollment count
@@ -751,14 +751,14 @@ app.get(
         if (course) {
           // Check if the course is already in the array
           const existingCourse = coursesWithPageInfo.find(
-            (c) => c.courseId === course.id
+            (c) => c.courseId === course.id,
           );
 
           if (!existingCourse) {
             // Calculate the total number of pages for the course
             const totalPages = course.Chapters.reduce(
               (total, chapter) => total + chapter.Pages.length,
-              0
+              0,
             );
 
             // Fetch the count of completed pages for the user in this course
@@ -797,10 +797,8 @@ app.get(
       console.error(error);
       return response.status(422).json(error);
     }
-  }
+  },
 );
-
-
 
 //mark page as complete
 app.post("/mark-as-complete", async (request, response) => {
@@ -810,10 +808,10 @@ app.post("/mark-as-complete", async (request, response) => {
     const chapterId = request.body.chapterId;
     var pageId = parseInt(request.body.pageId) + 1;
 
-    console.log(userId)
-    console.log(courseId)
-    console.log(chapterId)
-    console.log(pageId)
+    console.log(userId);
+    console.log(courseId);
+    console.log(chapterId);
+    console.log(pageId);
     await Enrollments.create({
       userId,
       courseId,
@@ -821,14 +819,16 @@ app.post("/mark-as-complete", async (request, response) => {
       pageId,
       completed: true,
     });
-    
+
     if (pageId === 1) {
       response.redirect(
         `/view-chapter/${chapterId}/viewpage?currentUserId=${userId}`,
       );
     } else {
       response.redirect(
-        `/view-chapter/${chapterId}/viewpage?currentUserId=${userId}&currentPageIndex=${pageId - 1}`,
+        `/view-chapter/${chapterId}/viewpage?currentUserId=${userId}&currentPageIndex=${
+          pageId - 1
+        }`,
       );
     }
   } catch (error) {
@@ -868,7 +868,7 @@ app.delete(
       console.error(err);
       return response.status(422).json(err);
     }
-  }
+  },
 );
 
 //change password routes
@@ -902,7 +902,11 @@ app.post("/changePassword", async (request, response) => {
     await user.update({ password: hashedPwd });
 
     // Redirect to a success page or login page
-    return response.redirect("/login");
+    if (user.role === "teacher") {
+      return response.redirect("/teacher-dashboard");
+    } else if (user.role === "student") {
+      return response.redirect("/student-dashboard");
+    }
   } catch (error) {
     console.log(error);
     request.flash("error", "Error updating the password.");
