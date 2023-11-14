@@ -16,6 +16,8 @@ Welcome to Learning Management System (LMS) built using Node.js! This platform o
 
 ## Link to demo - <a href="https://www.loom.com/share/3d82f829b2ee4aac8cbce7ceeb7a80d5"> Working demo </a> 
 
-## Clone my app - <br> `gh repo clone SwanandBhuskute/Learning-Management-System` <br> `git clone https://github.com/SwanandBhuskute/Learning-Management-System.git`
+## Clone my app - <br> 
+`gh repo clone SwanandBhuskute/Learning-Management-System` <br> `git clone https://github.com/SwanandBhuskute/Learning-Management-System.git`
 
-## Start the server - `nodemon index.js`  <br> `npm start` <br> `node index.js`
+## Start the server - 
+`nodemon index.js`  <br> `npm start` <br> `node index.js`
