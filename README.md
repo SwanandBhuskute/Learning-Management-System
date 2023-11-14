@@ -12,11 +12,11 @@ Welcome to Learning Management System (LMS) built using Node.js! This platform o
 **Student Progress section** ![Student Progress section](/project-images/student-progress.png)
 <br>
 
-## Link to the live applciation - <a href="https://lms-app-swanand.onrender.com/">Learning Management System </a> <br>
+## Link to the live applciation - <a href="https://lms-app-swanand.onrender.com/">Learning Management System </a>
 
 ## Link to demo - <a href="https://www.loom.com/share/3d82f829b2ee4aac8cbce7ceeb7a80d5"> Working demo </a> 
 
-## Clone my app - <br> 
+## Clone my app -
 `gh repo clone SwanandBhuskute/Learning-Management-System` <br> `git clone https://github.com/SwanandBhuskute/Learning-Management-System.git`
 
 ## Start the server - 
